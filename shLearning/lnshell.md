@@ -1,3 +1,4 @@
+## 学习笔记
 Bash中的字符串通过' 和 "分隔符来定义，但是它们的含义并不相同。以'定义的字符串为原义字符串，其中的变量不会被转义，而 "定义的字符串会将变量值进行替换。
 ```shell
 foo=bar
@@ -30,7 +31,7 @@ mcd () {
 import sys
 for arg in reversed(sys.argv[1:]):
     print(arg)
-```
+```      
 
 find命令会递归地搜索符合条件的文件，例如：
 ```sh
@@ -50,12 +51,19 @@ find . -name '*.tmp' -exec rm {} \;
 # 查找全部的 PNG 文件并将其转换为 JPG
 find . -name '*.png' -exec convert {} {}.jpg \;
 ```
-尽管 find 用途广泛，它的语法却比较难以记忆。例如，为了查找满足模式 PATTERN 的文件，您需要执行 find -name '*PATTERN*' (如果您希望模式匹配时是不区分大小写，可以使用-iname选项）
+尽管 find 用途广泛，它的语法却比较难以记忆。例如，为了查找满足模式 PATTERN 的文件，需要执行 find -name '*PATTERN*' (如果希望模式匹配时是不区分大小写，可以使用-iname选项）
 
 
 ## 作业
 
-### code1
+### code1 : 
+#### 阅读 man ls ，然后使用 ls 命令进行如下操作：
+
+    所有文件（包括隐藏文件）
+    文件打印以人类可以理解的格式输出 (例如，使用 454M 而不是 454279954)
+    文件以最近访问顺序排序
+    以彩色文本显示输出结果
+
 所有文件（包括隐藏文件）：
 ```sh
 ls -a
@@ -84,30 +92,72 @@ ls -alhtr --color=auto
 ```
 
 ![Alt text](image-7.png)
-### code2
+### code2 : 
+#### 编写两个 bash 函数 marco 和 polo 执行下面的操作。 每当你执行 marco 时，当前的工作目录应当以某种形式保存，当执行 polo 时，无论现在处在什么目录下，都应当 cd 回到当时执行 marco 的目录。 为了方便 debug，你可以把代码写在单独的文件 marco.sh 中，并通过 source marco.sh 命令，（重新）加载函数。
 
 ```sh
+# 编写两个 bash 函数 marco 和 polo 执行下面的操作。 每当你执行 marco 时，当前的工作目录应当以某种形式保存，当执行 polo 时，无论现在处在什么目录下，都应当 cd 回到当时执行 marco 的目录。 为了方便 debug，你可以把代码写在单独的文件 marco.sh 中，并通过 source marco.sh 命令，（重新）加载函数。
 #!/bin/bash
+
+# 初始化 MARCO_DIR 数组
+declare -a MARCO_DIR=()
 
 # 定义 marco 函数
 marco() {
-  export MARCO_DIR=$(pwd)
+    current_dir=$(pwd)
+  # 获取当前目录路径
+
+  # 将新地址插入到数组第0个位置
+  MARCO_DIR=("$current_dir" "${MARCO_DIR[@]}")
+  
+   echo "Hello!!! This directory has been recorded in MARCO_DIR!"
 }
 
 # 定义 polo 函数
 polo() {
-  cd "$MARCO_DIR" || { echo "Error: Failed to change directory."; return 1; }
+  local index="$1"  # 声明本地变量 index 并将传入的参数赋值给它
+  if [ -z "$index" ]; then  # 检查是否传入了参数
+    index=0  # 如果没有传入参数，默认设置 index 为 0
+  fi
+
+  if [ $index -lt 0 ] || [ $index -ge ${#MARCO_DIR[@]} ]; then  # 检查传入的 index 是否有效
+    echo "Error: Invalid index."
+    return 1
+  fi
+
+  cd "${MARCO_DIR[$index]}" || { echo "Error: Failed to change directory."; return 1; }  # 切换到指定索引处的目录
+}
+
+# 定义 show_marco 函数，用于显示 MARCO_DIR 中存储的多个地址
+show_marco() {
+  if [ ${#MARCO_DIR[@]} -eq 0 ]; then  # 检查 MARCO_DIR 是否为空
+    echo "MARCO_DIR is empty."
+  else
+    for i in "${!MARCO_DIR[@]}"; do  # 遍历 MARCO_DIR 数组
+      echo "[$i] ${MARCO_DIR[$i]}"  # 显示索引和对应的目录路径
+    done
+  fi
+}
+
+# 定义 clr_marco 函数，用于清空 MARCO_DIR 数组
+clr_marco() {
+  MARCO_DIR=()
+  echo "MARCO_DIR has been cleared."
 }
 ```
 
-
+#### 使用示例：
 ![Alt text](image-10.png)
-
+![alt text](image-17.png)
 ### code3
 ![Alt text](image-3.png)
 
-### code4
+### code4：
+#### 您的任务是编写一个命令，它可以递归地查找文件夹中所有的 HTML 文件，并将它们压缩成 zip 文件。注意，即使文件名中包含空格，您的命令也应该能够正确执行
+```shell
 find ./ -type f -name "*.html" -print0 | xargs -0 zip o| args -0 zip output.zip
+```
+#### 使用示例：
 ![Alt text](image-9.png)
 
 ### code5
